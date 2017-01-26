@@ -16,7 +16,7 @@
  * Contributors:
  *     Anahide Tchertchian
  */
-package test.java.org.nuxeo.ecm.spreadsheet.lang.test;
+package org.nuxeo.ecm.spreadsheet.lang.test;
 
 import org.nuxeo.ecm.platform.test.TranslationTestCase;
 

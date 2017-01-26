@@ -16,7 +16,7 @@
  * Contributors:
  *     Nicolas Chapurlat
  */
-package main.java.org.nuxeo.ecm.platform.spreadsheet;
+package org.nuxeo.ecm.platform.spreadsheet;
 
 import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;

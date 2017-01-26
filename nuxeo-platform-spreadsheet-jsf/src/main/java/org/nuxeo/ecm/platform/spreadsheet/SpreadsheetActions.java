@@ -16,7 +16,7 @@
  * Contributors:
  *     Nelson Silva <nelson.silva@inevo.pt>
  */
-package main.java.org.nuxeo.ecm.platform.spreadsheet;
+package org.nuxeo.ecm.platform.spreadsheet;
 
 import static org.jboss.seam.ScopeType.EVENT;
 
