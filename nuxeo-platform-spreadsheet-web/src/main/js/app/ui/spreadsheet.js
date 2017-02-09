@@ -16,6 +16,7 @@
  */
 import {Column} from './column';
 import {Layout} from '../nuxeo/layout';
+import {Schemas} from '../nuxeo/rest/schemas';
 import {Directory} from '../nuxeo/rpc/directory';
 import {Query} from '../nuxeo/rpc/query';
 
@@ -24,10 +25,9 @@ import {Query} from '../nuxeo/rpc/query';
  */
 class Spreadsheet {
 
-  constructor(container, connection, layout, columns, pageProvider, language) {
+  constructor(container, connection, resultLayoutName, resultColumns, pageProviderName, language) {
     this.container = container;
     this.connection = connection;
-
     this._data = [];
     this.options = {
       data: this._data,
@@ -57,29 +57,79 @@ class Spreadsheet {
     this.query.depth = 'max';
     // translate directory labels
     this.query.translate('directoryEntry', 'label');
+    this.query.pageProvider = pageProviderName;
 
-    this.query.pageProvider = pageProvider;
-
-    new Layout(connection, layout, language).fetch().then((layout) => {
-      // Check which columns to display
-      var cols = (!columns) ?
-          layout.columns.filter((c) =>  c.selectedByDefault !== false)
-          :
-          columns.map((name) => layout.columns.filter((c) => c.name === name)[0]);
-      this.columns = cols
+    // set columns based on result layout
+    if (resultLayoutName) {
+      new Layout(connection, resultLayoutName, language).fetch().then((layout) => {
+        // Check which columns to display
+        let cols = (!resultColumns) ? layout.columns.filter((c) => c.selectedByDefault !== false)
+          : resultColumns.map((name) => layout.columns.filter((c) => c.name === name)[0]);
+        this.columns = cols
           // Exclude columns without widgets
           .filter((c) => c.widgets)
           // Create our columns wrapper
           .map((c) => new Column(connection, c, layout.widgets[c.widgets[0].name], this.dirtyRenderer.bind(this)))
           // Only show columns with a known widget type and with a field
           .filter((c) => c.hasSupportedWidgetType && c.field);
-    });
+      });
+
+    // or based on result columns only
+    } else {
+
+      // default columns
+      if (!resultColumns) {
+        resultColumns = [
+          { label: 'Title', field: 'dc:title' },
+          { label: 'Description', field: 'dc:description'},
+          { label: 'Subjects', field: 'dc:subjects'},
+        ];
+      }
+
+      // get schemas prefixes from columns
+      let schemasPrefixes = [];
+      for (let c of resultColumns) {
+        let schema = c.field.split(':')[0];
+        if (schema && schemasPrefixes.indexOf(schema) === -1) {
+          schemasPrefixes.push(schema);
+        }
+      }
+
+      // fetch schemas (based on prefixes)
+      new Schemas(connection).fetch(schemasPrefixes).then((schemas) => {
+
+        let cols = [];
+        for (let col of resultColumns) {
+          let s = col.field.split(':')[0];
+          let f = col.field.split(':')[1];
+
+          let column = {};
+          column.def = {properties: {any: {sortPropertyName: col.field, label: col.label}}};
+          column.widget = {field: col.field, properties: {}};
+
+          // set widget based on field constraints
+          let field = schemas[s].fields[f];
+
+          // TODO: workaround until https://jira.nuxeo.com/browse/NXP-21610 is fixed
+          if (col.field === 'dc:subjects') {
+            column.widget.type = 'suggestManyDirectory';
+            column.widget.properties = {dbl10n: true, directoryName: 'l10nsubjects'};
+          }
+
+          cols.push(column);
+        }
+        this.columns = cols.map((c) => new Column(connection, c.def, c.widget, this.dirtyRenderer.bind(this)));
+      });
+    }
 
     this.container.handsontable(this.options);
     this.ht = this.container.data('handsontable');
   }
 
-  get data() { return this._data; }
+  get data() {
+    return this._data;
+  }
+
   set data(d) {
     this._data = d;
     this.ht.loadData(this._data);
@@ -221,8 +271,8 @@ class Spreadsheet {
       if (this._dirty[doc.uid].hasOwnProperty('_error')) {
         color = '#f33';
       // check for dirty property
-      } else  if (hasProp(this._dirty[doc.uid], prop)) {
-          color = '#afd8ff';
+      } else if (hasProp(this._dirty[doc.uid], prop)) {
+        color = '#afd8ff';
       }
       $(td).css({
         background: color
@@ -235,7 +285,7 @@ class Spreadsheet {
   }
 
   _update() {
-    var options = $.extend({}, this.options);
+    let options = $.extend({}, this.options);
     options.colHeaders = this.columns.map((c) => c.header);
     options.columns = this.columns;
     this.ht.updateSettings(options);
@@ -260,9 +310,7 @@ function assign(obj, prop, value) {
 
   if (prop.length > 1) {
     var e = prop.shift();
-    assign(obj[e] = Object.prototype.toString.call(obj[e]) === '[object Object]'? obj[e] : {},
-      prop,
-      value);
+    assign(obj[e] = Object.prototype.toString.call(obj[e]) === '[object Object]' ? obj[e] : {}, prop, value);
   } else {
     obj[prop[0]] = value;
   }
@@ -275,8 +323,7 @@ function hasProp(obj, prop) {
 
   if (prop.length > 1) {
     var e = prop.shift();
-    return hasProp(obj[e] = Object.prototype.toString.call(obj[e]) === '[object Object]'? obj[e] : {},
-      prop);
+    return hasProp(obj[e] = Object.prototype.toString.call(obj[e]) === '[object Object]' ? obj[e] : {}, prop);
   } else {
     return obj.hasOwnProperty(prop[0]);
   }

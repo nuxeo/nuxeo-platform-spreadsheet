@@ -101,17 +101,19 @@ function run(baseURL = '/nuxeo', username = null, password = null) {
   setupUI();
 
   return nx.connect().then(() => {
-    // Extract content view configuration
-    var layout = (cv && cv.resultLayout && cv.resultLayout.name) || 'spreadsheet_listing',
-        resultColumns = cv && cv.resultColumns;
-
-    var pageProvider = (cv) ? cv.pageProviderName : (pp || 'spreadsheet_query');
 
     // Setup the language
-    var language = (nuxeo && nuxeo.spreadsheet && nuxeo.spreadsheet.language) ? nuxeo.spreadsheet.language.split('_')[0] : 'en';
+    let language = (nuxeo && nuxeo.spreadsheet && nuxeo.spreadsheet.language) ? nuxeo.spreadsheet.language.split('_')[0] : 'en';
+
+    // Extract content view configuration
+    let resultLayoutName = (cv && cv.resultLayout && cv.resultLayout.name);
+    let resultColumns = cv && cv.resultColumns;
+    let pageProviderName = (cv) ? cv.pageProviderName : (pp || 'spreadsheet_query');
+
+    //resultLayoutName = 'spreadsheet_listing';
 
     // Setup the SpreadSheet
-    sheet = new Spreadsheet($('#grid'), nx, layout, resultColumns, pageProvider, language);
+    sheet = new Spreadsheet($('#grid'), nx, resultLayoutName, resultColumns, pageProviderName, language);
 
     // If we don't have a content view we're done...
     if (isStandalone) {
