@@ -81,15 +81,16 @@ class Spreadsheet {
       if (!resultColumns) {
         resultColumns = [
           { label: 'Title', field: 'dc:title' },
-          { label: 'Description', field: 'dc:description'},
-          { label: 'Subjects', field: 'dc:subjects'},
+          { label: 'Modified', field: 'dc:modified'},
+          { label: 'Last Contributor', field: 'dc:lastContributor'},
+          { label: 'State', field: 'currentLifeCycleState'}
         ];
       }
 
       // get schemas prefixes from columns
       let schemasPrefixes = [];
       for (let c of resultColumns) {
-        let schema = c.field.split(':')[0];
+        let schema = c.field.includes(':') ? c.field.split(':')[0] : undefined;
         if (schema && schemasPrefixes.indexOf(schema) === -1) {
           schemasPrefixes.push(schema);
         }
@@ -98,24 +99,39 @@ class Spreadsheet {
       // fetch schemas (based on prefixes)
       new Schemas(connection).fetch(schemasPrefixes).then((schemas) => {
 
+        // set columns
         let cols = [];
         for (let col of resultColumns) {
-          let s = col.field.split(':')[0];
-          let f = col.field.split(':')[1];
 
           let column = {};
           column.def = {properties: {any: {sortPropertyName: col.field, label: col.label}}};
-          column.widget = {field: col.field, properties: {}};
+          column.widget = {field: col.field};
 
-          // set widget based on field constraints
-          let field = schemas[s].fields[f];
-
-          // TODO: workaround until https://jira.nuxeo.com/browse/NXP-21610 is fixed
-          if (col.field === 'dc:subjects') {
-            column.widget.type = 'suggestManyDirectory';
-            column.widget.properties = {dbl10n: true, directoryName: 'l10nsubjects'};
+          // get field from schemas map
+          let field = undefined; // <- explicitly set field as undefined in each iteration
+          if (col.field.includes(':')) {
+            let s = col.field.split(':')[0];
+            let f = col.field.split(':')[1];
+            field = schemas[s].fields[f] || undefined;
           }
 
+          // set column widget type and properties based on field constraints
+          if (field) {
+            let constraints = field.itemConstraints || field.constraints;
+            if (constraints) {
+              for (let constraint of constraints) {
+                switch (constraint.name) {
+                  case 'directoryResolver':
+                    column.widget.type = (field.type === 'string[]') ? 'suggestManyDirectory' : 'suggestOneDirectory';
+                    column.widget.properties = {dbl10n: true, directoryName: constraint.parameters.directory};
+                    break;
+                  case 'userManagerResolver':
+                    column.widget.type = (field.type === 'string[]') ? 'multipleUsersSuggestion' : 'singleUserSuggestion';
+                    break;
+                }
+              }
+            }
+          }
           cols.push(column);
         }
         this.columns = cols.map((c) => new Column(connection, c.def, c.widget, this.dirtyRenderer.bind(this)));
