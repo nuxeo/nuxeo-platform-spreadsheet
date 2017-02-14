@@ -41,7 +41,9 @@ function setupUI() {
   // Setup popup UI
   if (!isStandalone) {
     $('#close').click(function() {
-      parent.jQuery.fancybox.close();
+      if (parent.jQuery.fancybox) {
+        parent.jQuery.fancybox.close();
+      }
     });
     $('#close').toggle(true);
 
@@ -109,8 +111,6 @@ function run(baseURL = '/nuxeo', username = null, password = null) {
     let resultLayoutName = (cv && cv.resultLayout && cv.resultLayout.name);
     let resultColumns = cv && cv.resultColumns;
     let pageProviderName = (cv) ? cv.pageProviderName : (pp || 'spreadsheet_query');
-
-    //resultLayoutName = 'spreadsheet_listing';
 
     // Setup the SpreadSheet
     sheet = new Spreadsheet($('#grid'), nx, resultLayoutName, resultColumns, pageProviderName, language);
