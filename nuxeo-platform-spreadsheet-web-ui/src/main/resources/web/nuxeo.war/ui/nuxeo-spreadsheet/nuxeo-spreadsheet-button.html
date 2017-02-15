@@ -1,5 +1,5 @@
 <!--
-(C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+(C) Copyright 2017 Nuxeo SA (http://nuxeo.com/) and others.
 
 Licensed under the Apache License, Version 2.0 (the License);
 you may not use this file except in compliance with the License.
@@ -51,6 +51,8 @@ Contributors:
       }
     </style>
 
+    <nuxeo-connection id="nxconn"></nuxeo-connection>
+
     <template is="dom-if" if="[[_isAvailable(nxProvider, mode)]]">
       <paper-icon-button id="button" icon="editor:mode-edit" on-tap="_show"></paper-icon-button>
       <paper-tooltip for="button">[[i18n('spreadsheetButton.tooltip')]]</paper-tooltip>
@@ -67,10 +69,6 @@ Contributors:
       is: 'nuxeo-spreadsheet-button',
       behaviors: [Nuxeo.RoutingBehavior, Nuxeo.I18nBehavior, Nuxeo.FiltersBehavior],
       properties: {
-        baseUrl: {
-          type: String,
-          value: '/nuxeo/'
-        },
         mode: {
           type: String,
           value: ''
@@ -86,26 +84,27 @@ Contributors:
       },
 
       _show: function() {
-        // convert from nxProvider.sort to sortInfos
-        var sortInfos = [];
-        Object.keys(this.nxProvider.sort).forEach(function(key) {
-          sortInfos.push({'sortColumn': key, 'sortAscending': this.nxProvider.sort[key] === 'asc'});
-        }.bind(this));
 
-        // convert nxProvider.params and nxProvider.aggregations to properties
+        var provider = this.nxProvider;
+
+        // convert from provider.sort to sortInfos
+        var sortInfos = Object.keys(provider.sort)
+          .map((k) => ({'sortColumn': k, 'sortAscending': provider.sort[k] === 'asc'}));
+
+        // convert provider.params and provider.aggregations to properties
         var properties = {};
-        Object.keys(this.nxProvider.params).forEach(function(key) {
-          properties[key] = this.nxProvider.params[key];
-        }.bind(this));
-        Object.keys(this.nxProvider.aggregations).forEach(function(key) {
-          properties[key] = this.nxProvider.aggregations[key].selection;
-        }.bind(this));
+        Object.keys(provider.params).forEach(function(key) {
+          properties[key] = provider.params[key];
+        });
+        Object.keys(provider.aggregations).forEach(function(key) {
+          properties[key] = provider.aggregations[key].selection;
+        });
 
         var state = {
-          pageProviderName: this.nxProvider.provider,
-          pageSize: this.nxProvider.pageSize,
-          currentPage: this.nxProvider.page,
-          namedParameters: this.nxProvider.params,
+          pageProviderName: provider.provider,
+          pageSize: provider.pageSize,
+          currentPage: provider.page,
+          namedParameters: provider.params,
           searchDocument: {properties: properties},
           sortInfos: sortInfos,
 
@@ -115,7 +114,7 @@ Contributors:
           executed: false
         };
 
-        this.$.iframe.src = this.baseUrl + '/spreadsheet/?cv=' + encodeURIComponent(btoa(JSON.stringify(state)));
+        this.$.iframe.src = this.$.nxconn.url + '/spreadsheet/?cv=' + encodeURIComponent(btoa(JSON.stringify(state)));
         this.$.dialog.toggle();
       },
 
@@ -127,9 +126,7 @@ Contributors:
       _onLoad: function() {
         var close = (this.$.iframe.contentDocument || this.$.iframe.contentWindow.document).querySelector('#close');
         if (close) {
-          close.addEventListener('click', function() {
-            this._close();
-          }.bind(this), false);
+          close.addEventListener('click', this._close.bind(this));
         }
       }
 

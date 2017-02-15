@@ -108,9 +108,19 @@ function run(baseURL = '/nuxeo', username = null, password = null) {
     let language = (nuxeo && nuxeo.spreadsheet && nuxeo.spreadsheet.language) ? nuxeo.spreadsheet.language.split('_')[0] : 'en';
 
     // Extract content view configuration
-    let resultLayoutName = (cv && cv.resultLayout && cv.resultLayout.name);
+    let resultLayoutName = cv && cv.resultLayout && cv.resultLayout.name;
     let resultColumns = cv && cv.resultColumns;
-    let pageProviderName = (cv) ? cv.pageProviderName : (pp || 'spreadsheet_query');
+    let pageProviderName = cv ? cv.pageProviderName : (pp || 'spreadsheet_query');
+
+    // default columns
+    if (!resultLayoutName && !resultColumns) {
+      resultColumns = [
+        { label: 'Title', field: 'dc:title' },
+        { label: 'Modified', field: 'dc:modified'},
+        { label: 'Last Contributor', field: 'dc:lastContributor'},
+        { label: 'State', field: 'currentLifeCycleState'}
+      ];
+    }
 
     // Setup the SpreadSheet
     sheet = new Spreadsheet($('#grid'), nx, resultLayoutName, resultColumns, pageProviderName, language);

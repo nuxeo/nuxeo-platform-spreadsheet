@@ -25,7 +25,7 @@ import {Query} from '../nuxeo/rpc/query';
  */
 class Spreadsheet {
 
-  constructor(container, connection, resultLayoutName, resultColumns, pageProviderName, language) {
+  constructor(container, connection, layout, columns, pageProvider, language) {
     this.container = container;
     this.connection = connection;
     this._data = [];
@@ -57,19 +57,19 @@ class Spreadsheet {
     this.query.depth = 'max';
     // translate directory labels
     this.query.translate('directoryEntry', 'label');
-    this.query.pageProvider = pageProviderName;
+    this.query.pageProvider = pageProvider;
 
     // set columns based on result layout
-    if (resultLayoutName) {
-      new Layout(connection, resultLayoutName, language).fetch().then((layout) => {
+    if (layout) {
+      new Layout(connection, layout, language).fetch().then((l) => {
         // Check which columns to display
-        let cols = (!resultColumns) ? layout.columns.filter((c) => c.selectedByDefault !== false)
-          : resultColumns.map((name) => layout.columns.filter((c) => c.name === name)[0]);
+        let cols = (columns) ? columns.map((name) => l.columns.filter((c) => c.name === name)[0])
+          : l.columns.filter((c) => c.selectedByDefault !== false);
         this.columns = cols
           // Exclude columns without widgets
           .filter((c) => c.widgets)
           // Create our columns wrapper
-          .map((c) => new Column(connection, c, layout.widgets[c.widgets[0].name], this.dirtyRenderer.bind(this)))
+          .map((c) => new Column(connection, c, l.widgets[c.widgets[0].name], this.dirtyRenderer.bind(this)))
           // Only show columns with a known widget type and with a field
           .filter((c) => c.hasSupportedWidgetType && c.field);
       });
@@ -77,19 +77,9 @@ class Spreadsheet {
     // or based on result columns only
     } else {
 
-      // default columns
-      if (!resultColumns) {
-        resultColumns = [
-          { label: 'Title', field: 'dc:title' },
-          { label: 'Modified', field: 'dc:modified'},
-          { label: 'Last Contributor', field: 'dc:lastContributor'},
-          { label: 'State', field: 'currentLifeCycleState'}
-        ];
-      }
-
       // get schemas prefixes from columns
       let schemasPrefixes = [];
-      for (let c of resultColumns) {
+      for (let c of columns) {
         let schema = c.field.includes(':') ? c.field.split(':')[0] : undefined;
         if (schema && schemasPrefixes.indexOf(schema) === -1) {
           schemasPrefixes.push(schema);
@@ -99,19 +89,17 @@ class Spreadsheet {
       // fetch schemas (based on prefixes)
       new Schemas(connection).fetch(schemasPrefixes).then((schemas) => {
 
-        // set columns
-        let cols = [];
-        for (let col of resultColumns) {
+        let cols = columns.map((c) => {
 
-          let column = {};
-          column.def = {properties: {any: {sortPropertyName: col.field, label: col.label}}};
-          column.widget = {field: col.field};
+          let column = {
+            def: {properties: {any: {sortPropertyName: c.field, label: c.label}}},
+            widget: {field: c.field}
+          };
 
           // get field from schemas map
           let field = undefined; // <- explicitly set field as undefined in each iteration
-          if (col.field.includes(':')) {
-            let s = col.field.split(':')[0];
-            let f = col.field.split(':')[1];
+          if (c.field.includes(':')) {
+            let [s, f] = c.field.split(':');
             field = schemas[s].fields[f] || undefined;
           }
 
@@ -132,8 +120,10 @@ class Spreadsheet {
               }
             }
           }
-          cols.push(column);
-        }
+
+          return column;
+        });
+
         this.columns = cols.map((c) => new Column(connection, c.def, c.widget, this.dirtyRenderer.bind(this)));
       });
     }

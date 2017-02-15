@@ -23,45 +23,34 @@ class Schemas extends Request {
 
   constructor(connection) {
     super(connection, PATH);
-    this.data = {};
-  }
-
-  fetchFieldsBySchema(schema) {
-    return new Promise((resolve, reject) => {
-      this.conn.request(`${PATH}/${schema}?fetch.schema=fields`).repositoryName(undefined).get((error, data) => {
-        if (error) {
-          reject(Error(error));
-        }
-        let key = data['@prefix'] || data.name;
-        this.data[key].fields = data.fields;
-        resolve(data);
-      });
-    });
   }
 
   fetch(schemas) {
-    this.data = [];
+    let data = [];
     return this.execute().then((entries) => {
 
       for (let entry of entries) {
         let key = entry['@prefix'] || entry.name;
         if (schemas.indexOf(key) !== -1) {
-          this.data[key] = {name: entry.name};
+          data[key] = {name: entry.name};
         }
       }
 
-      let promises = [];
-      for (let schema of schemas) {
-        promises.push(this.fetchFieldsBySchema(this.data[schema].name));
-      }
+      let promises = schemas.map((s) => this._fetchFieldsBySchema(data[s].name));
 
       return Promise.all(promises).then(values => {
-        return this.data;
-      }, reason => {
-        console.log(reason);
+        for (let value of values) {
+          let key = value['@prefix'] || value.name;
+          data[key].fields = value.fields;
+        }
+        return data;
       });
 
     });
+  }
+
+  _fetchFieldsBySchema(schema) {
+    return this.execute('get', `${PATH}/${schema}?fetch.schema=fields`);
   }
 
 }
