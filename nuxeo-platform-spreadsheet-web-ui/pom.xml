@@ -12,4 +12,15 @@
   <name>Nuxeo Platform Spreadsheet Web UI</name>
   <description>Nuxeo Platform Spreadsheet Web UI</description>
 
+  <dependencies>
+    <dependency>
+      <groupId>org.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-spreadsheet-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-spreadsheet-web</artifactId>
+    </dependency>
+  </dependencies>
+
 </project>
