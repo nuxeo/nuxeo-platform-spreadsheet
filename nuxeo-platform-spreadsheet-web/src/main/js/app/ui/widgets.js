@@ -13,10 +13,12 @@
  *
  * Contributors:
  *     Nelson Silva <nelson.silva@inevo.pt>
+ *     Jackie Aldama <jaldama@nuxeo.com>
  */
 import {DirectoryEditor, DirectoryRenderer} from './editors/directory';
 import {DocumentEditor} from './editors/document';
 import {UserEditor, UserRenderer} from './editors/user';
+import {ImageRenderer} from './editors/image';
 
 Handsontable.editors.registerEditor('directory', DirectoryEditor);
 Handsontable.editors.registerEditor('document', DocumentEditor);
@@ -55,6 +57,10 @@ export const WIDGETS = {
   },
   listing_title_link: {
     type: 'text'
+  },
+  listing_thumbnail: {
+    type: 'viewImage',
+    field: 'thumbnailURL'
   }
 };
 
@@ -111,5 +117,10 @@ export const WIDGET_TYPES = {
   multipleDocumentsSuggestion: {
     editor: 'document',
     multiple: true
+  },
+
+  // IMAGE
+  viewImage: {
+    renderer: ImageRenderer
   }
 };
