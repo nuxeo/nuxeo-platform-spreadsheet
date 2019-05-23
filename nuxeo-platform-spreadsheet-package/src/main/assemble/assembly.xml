@@ -1,0 +1,117 @@
+<project name="nuxeo-media-publishing-assembly"
+         default="build"
+         xmlns:nx="urn:nuxeo-build"
+         xmlns:artifact="urn:nuxeo-artifact">
+  <taskdef resource="org/nuxeo/build/antlib.xml" uri="urn:nuxeo-build" />
+  <taskdef resource="org/nuxeo/build/artifact/antlib.xml" uri="urn:nuxeo-artifact" />
+  <taskdef resource="net/sf/antcontrib/antlib.xml" />
+
+  <target name="build" description="Build Nuxeo Spreadsheet Marketplace package">
+    <property name="outdir" value="${maven.project.build.directory}" />
+    <artifact:nuxeo-expand includeTestScope="true" groupPrefixes="org.nuxeo" />
+    <!-- For Nuxeo IDE being able to use that distribution as a SDK -->
+    <artifact:print output="${outdir}/artifacts-spreadsheet.properties" mode="sdk" />
+    <artifact:print output="${outdir}/test-artifacts-spreadsheet.properties" mode="sdk" scopes="test" />
+    <!-- Prints the graph for debugging purpose -->
+    <artifact:print output="${outdir}/dependency-tree.log" />
+    <tstamp />
+
+    <delete failonerror="false" dir="${outdir}/nxr" />
+    <mkdir dir="${outdir}/nxr" />
+    <delete failonerror="false" dir="${outdir}/marketplace" />
+    <mkdir dir="${outdir}/marketplace" />
+    <copy todir="${outdir}/marketplace">
+      <fileset dir="src/main/resources" />
+      <filterset>
+        <filter token="VERSION" value="${maven.project.version}" />
+        <filter token="DISTRIB_VERSION" value="${nuxeo.distribution.version}" />
+      </filterset>
+    </copy>
+    <copy file="${outdir}/artifacts-spreadsheet.properties" todir="${outdir}/marketplace/install" />
+    <copy file="${outdir}/test-artifacts-spreadsheet.properties" todir="${outdir}/marketplace/install" />
+
+    <!-- Base distribution NXR -->
+    <copy todir="${outdir}">
+      <artifact:file key="org.nuxeo.ecm.distribution:nuxeo-nxr-server::zip" />
+      <artifact:file key="org.nuxeo.ecm.distribution:nuxeo-nxr-jsf-ui::zip" />
+    </copy>
+
+    <!-- Nuxeo bundles -->
+    <copy todir="${outdir}/nxr/bundles" overwrite="true">
+      <artifact:set>
+        <includes>
+          <artifact groupId="org.nuxeo*" />
+        </includes>
+        <excludes>
+          <artifact groupId="org.nuxeo.lib*" />
+          <artifact scope="test" />
+          <artifact scope="provided" />
+          <artifact type="pom" />
+        </excludes>
+      </artifact:set>
+    </copy>
+
+    <nx:rmdups dir="${outdir}/nxr/lib" />
+    <unzip src="${outdir}/nuxeo-nxr-server-${nuxeo.distribution.version}.zip"
+           dest="${outdir}/nuxeo-nxr-all" />
+    <unzip src="${outdir}/nuxeo-nxr-jsf-ui-${nuxeo.distribution.version}.zip"
+           dest="${outdir}/nuxeo-nxr-all" />
+    <zip destfile="${outdir}/nuxeo-nxr-all-${nuxeo.distribution.version}.zip"
+         basedir="${outdir}/nuxeo-nxr-all" />
+    <zip destfile="${outdir}/nxr-${maven.project.version}.zip" basedir="${outdir}/nxr" />
+    <!-- Diff against Nuxeo Server + JSF UI -->
+    <nx:zipdiff file1="${outdir}/nxr-${maven.project.version}.zip"
+                file2="${outdir}/nuxeo-nxr-all-${nuxeo.distribution.version}.zip"
+                includesfile="${outdir}/includes"
+                excludesfile="${outdir}/excludesfile"
+                patternsetid="spreadsheet.versus.all">
+    </nx:zipdiff>
+    <unzip src="${outdir}/nxr-${maven.project.version}.zip" dest="${outdir}/marketplace/install">
+      <patternset refid="spreadsheet.versus.all" />
+    </unzip>
+
+    <!-- Separate JSF UI packages -->
+    <mkdir dir="${outdir}/marketplace/install/bundles-jsf-ui" />
+    <move todir="${outdir}/marketplace/install/bundles-jsf-ui">
+      <fileset dir="${outdir}/marketplace/install/bundles">
+        <include name="nuxeo-platform-spreadsheet-*jsf-*.jar" />
+      </fileset>
+    </move>
+
+    <!-- Generate install.xml content -->
+    <!-- See documentation at http://doc.nuxeo.com/x/IgIz -->
+    <var name="install.bundles" value=""/>
+    <var name="install.bundles"
+         value="${line.separator}
+  &lt;update file=&quot;${package.root}/install/bundles&quot; todir=&quot;${env.bundles}&quot; /&gt;"/>
+    <var name="install.bundles"
+         value="${install.bundles}${line.separator}
+  &lt;update file=&quot;${package.root}/install/bundles-jsf-ui&quot; todir=&quot;${env.bundles}&quot; if=&quot;Packages.contains('nuxeo-jsf-ui')&quot; /&gt;"/>
+
+    <copy file="src/main/resources/install.xml" todir="${outdir}/marketplace" overwrite="true">
+      <filterset>
+        <filter token="BUNDLES" value="${install.bundles}" />
+      </filterset>
+    </copy>
+
+    <nx:studioExtraction todir="${outdir}/marketplace">
+      <fileset dir="${outdir}/marketplace/install/bundles"/>
+      <fileset dir="${outdir}/marketplace/install/bundles-jsf-ui"/>
+    </nx:studioExtraction>
+
+    <zip destfile="${outdir}/${maven.project.artifactId}-${maven.project.version}.zip"
+         basedir="${outdir}/marketplace" />
+    <artifact:attach file="${outdir}/${maven.project.artifactId}-${maven.project.version}.zip" type="zip" />
+
+    <!-- cleanups -->
+    <delete dir="${outdir}/marketplace" failonerror="false" />
+    <delete dir="${outdir}/nxr" failonerror="false" />
+    <delete dir="${outdir}/nuxeo-nxr-all" failonerror="false" />
+    <delete file="${outdir}/nxr-${nuxeo.distribution.version}.zip" failonerror="false" />
+    <delete file="${outdir}/nuxeo-nxr-all-${nuxeo.distribution.version}.zip" failonerror="false" />
+    <delete file="${outdir}/nuxeo-nxr-server-${nuxeo.distribution.version}.zip" failonerror="false" />
+    <delete file="${outdir}/nuxeo-nxr-jsf-ui-${nuxeo.distribution.version}.zip" failonerror="false" />
+
+  </target>
+
+</project>

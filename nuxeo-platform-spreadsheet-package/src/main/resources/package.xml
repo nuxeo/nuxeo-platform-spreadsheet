@@ -1,0 +1,31 @@
+<package type="addon" name="nuxeo-spreadsheet" version="@VERSION@">
+  <title>Nuxeo Spreadsheet</title>
+  <description>
+    <p>The Nuxeo Spreadsheet addon allows bulk editing documents metadata starting from a content view result set, providing a spreadsheet-like user experience.</p>
+  </description>
+  <home-page>https://doc.nuxeo.com/nxdoc/nuxeo-spreadsheet/</home-page>
+  <vendor>Nuxeo</vendor>
+  <installer restart="true" />
+  <uninstaller restart="true" />
+  <!-- <hotreload-support>false</hotreload-support> -->
+  <!-- <require-terms-and-conditions-acceptance>false</require-terms-and-conditions-acceptance> -->
+  <!-- <nuxeo-validation>none</nuxeo-validation> -->
+  <!-- <nuxeo-validation>inprocess</nuxeo-validation> -->
+  <!-- <nuxeo-validation>primary_validation</nuxeo-validation> -->
+  <nuxeo-validation>nuxeo_certified</nuxeo-validation>
+  <!-- <production-state>proto</production-state> -->
+  <!-- <production-state>testing</production-state> -->
+  <production-state>production_ready</production-state>
+  <supported>true</supported>
+  <platforms>
+    <platform>server-@DISTRIB_VERSION@</platform>
+    <platform>server-@DISTRIB_VERSION@-*</platform>
+  </platforms>
+  <optional-dependencies>
+    <package>nuxeo-jsf-ui</package>
+    <package>nuxeo-web-ui</package>
+  </optional-dependencies>
+  <license>LGPL 2.1</license>
+  <license-url>http://www.gnu.org/licenses/lgpl-2.1.html</license-url>
+  <visibility>PUBLIC</visibility>
+</package>

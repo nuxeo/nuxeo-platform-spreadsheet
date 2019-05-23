@@ -17,6 +17,7 @@
     <module>nuxeo-platform-spreadsheet-core</module>
     <module>nuxeo-platform-spreadsheet-web</module>
     <module>nuxeo-platform-spreadsheet-jsf</module>
+    <module>nuxeo-platform-spreadsheet-package</module>
   </modules>
 
   <dependencyManagement>
@@ -35,6 +36,12 @@
         <groupId>org.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-spreadsheet-jsf</artifactId>
         <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-spreadsheet-package</artifactId>
+        <version>${project.version}</version>
+        <type>zip</type>
       </dependency>
     </dependencies>
   </dependencyManagement>
