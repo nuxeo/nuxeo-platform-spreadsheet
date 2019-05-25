@@ -20,6 +20,15 @@
     <module>nuxeo-platform-spreadsheet-package</module>
   </modules>
 
+  <profiles>
+    <profile>
+      <id>ftest</id>
+      <modules>
+        <module>ftest/webdriver</module>
+      </modules>
+    </profile>
+  </profiles>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
