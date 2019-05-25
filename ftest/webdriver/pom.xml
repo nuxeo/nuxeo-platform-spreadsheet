@@ -8,8 +8,8 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <groupId>org.nuxeo.marketplace.spreadsheet</groupId>
-  <artifactId>marketplace-spreadsheet-ftest-webdriver</artifactId>
+  <groupId>org.nuxeo.ecm.platform</groupId>
+  <artifactId>nuxeo-platform-spreadsheet-ftest-webdriver</artifactId>
   <name>Nuxeo Spreadsheet functional tests with WebDriver</name>
   <description>Nuxeo Spreadsheet functional tests with WebDriver</description>
 
@@ -37,8 +37,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.marketplace.spreadsheet</groupId>
-      <artifactId>marketplace-spreadsheet</artifactId>
+      <groupId>org.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-spreadsheet-package</artifactId>
       <type>zip</type>
       <scope>test</scope>
     </dependency>
