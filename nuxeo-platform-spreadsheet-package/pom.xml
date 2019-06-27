@@ -28,6 +28,12 @@
         <type>zip</type>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.nuxeo.ecm.distribution</groupId>
+        <artifactId>nuxeo-marketplace-jsf-ui</artifactId>
+        <version>${project.version}</version>
+        <type>zip</type>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
