@@ -24,7 +24,7 @@
       <fileset dir="src/main/resources" />
       <filterset>
         <filter token="VERSION" value="${maven.project.version}" />
-        <filter token="DISTRIB_VERSION" value="${nuxeo.distribution.version}" />
+        <filter token="DISTRIB_VERSION" value="${nuxeo.platform.version}" />
       </filterset>
     </copy>
     <copy file="${outdir}/artifacts-spreadsheet.properties" todir="${outdir}/marketplace/install" />
@@ -52,16 +52,16 @@
     </copy>
 
     <nx:rmdups dir="${outdir}/nxr/lib" />
-    <unzip src="${outdir}/nuxeo-nxr-server-${nuxeo.distribution.version}.zip"
+    <unzip src="${outdir}/nuxeo-nxr-server-${nuxeo.platform.version}.zip"
            dest="${outdir}/nuxeo-nxr-all" />
-    <unzip src="${outdir}/nuxeo-nxr-jsf-ui-${nuxeo.distribution.version}.zip"
+    <unzip src="${outdir}/nuxeo-nxr-jsf-ui-${nuxeo.platform.version}.zip"
            dest="${outdir}/nuxeo-nxr-all" />
-    <zip destfile="${outdir}/nuxeo-nxr-all-${nuxeo.distribution.version}.zip"
+    <zip destfile="${outdir}/nuxeo-nxr-all-${nuxeo.platform.version}.zip"
          basedir="${outdir}/nuxeo-nxr-all" />
     <zip destfile="${outdir}/nxr-${maven.project.version}.zip" basedir="${outdir}/nxr" />
     <!-- Diff against Nuxeo Server + JSF UI -->
     <nx:zipdiff file1="${outdir}/nxr-${maven.project.version}.zip"
-                file2="${outdir}/nuxeo-nxr-all-${nuxeo.distribution.version}.zip"
+                file2="${outdir}/nuxeo-nxr-all-${nuxeo.platform.version}.zip"
                 includesfile="${outdir}/includes"
                 excludesfile="${outdir}/excludesfile"
                 patternsetid="spreadsheet.versus.all">
@@ -107,10 +107,10 @@
     <delete dir="${outdir}/marketplace" failonerror="false" />
     <delete dir="${outdir}/nxr" failonerror="false" />
     <delete dir="${outdir}/nuxeo-nxr-all" failonerror="false" />
-    <delete file="${outdir}/nxr-${nuxeo.distribution.version}.zip" failonerror="false" />
-    <delete file="${outdir}/nuxeo-nxr-all-${nuxeo.distribution.version}.zip" failonerror="false" />
-    <delete file="${outdir}/nuxeo-nxr-server-${nuxeo.distribution.version}.zip" failonerror="false" />
-    <delete file="${outdir}/nuxeo-nxr-jsf-ui-${nuxeo.distribution.version}.zip" failonerror="false" />
+    <delete file="${outdir}/nxr-${nuxeo.platform.version}.zip" failonerror="false" />
+    <delete file="${outdir}/nuxeo-nxr-all-${nuxeo.platform.version}.zip" failonerror="false" />
+    <delete file="${outdir}/nuxeo-nxr-server-${nuxeo.platform.version}.zip" failonerror="false" />
+    <delete file="${outdir}/nuxeo-nxr-jsf-ui-${nuxeo.platform.version}.zip" failonerror="false" />
 
   </target>
 
