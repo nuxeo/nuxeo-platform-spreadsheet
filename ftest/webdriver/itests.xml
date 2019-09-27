@@ -11,7 +11,7 @@
 
   <!-- Instruction for installing the MP to be tested -->
   <property name="mp.install"
-            value="file:${out.dir}/nuxeo-marketplace-jsf-ui-${nuxeo.distribution.version}.zip,
+            value="file:${out.dir}/nuxeo-marketplace-jsf-ui-${nuxeo.platform.version}.zip,
   file:${out.dir}/nuxeo-platform-spreadsheet-package-${maven.project.version}.zip" />
   <!-- Override default prepare-environment target to make it download your MP -->
   <target name="prepare-environment" depends="_init,prepare-db,prepare-tomcat">
