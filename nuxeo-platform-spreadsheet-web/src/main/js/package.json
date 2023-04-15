@@ -24,7 +24,7 @@
     "opn": "^0.1.1",
     "proxy-middleware": "^0.15.0",
     "run-sequence": "^1.0.1",
-    "traceur": "^0.0.72"
+    "traceur": "^0.0.111"
   },
   "engines": {
     "node": ">=0.10.0"
